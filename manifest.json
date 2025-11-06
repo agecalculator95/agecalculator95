@@ -1,0 +1,9 @@
+{
+  "name": "Smart Age Calculator",
+  "short_name": "AgeCalc",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#3c0078",
+  "theme_color": "#b85cff",
+  "description": "Instant age calculator for years, months, days, hours, minutes & seconds."
+}
