@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="images/favicon.png" type="image/png">
+    <title>Age Calculator Online - Find Your Exact Age</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Age Calculator — Smart Tools</title>
+
+  <meta name="description" content="Free Age Calculator — exact years, months, days, hours, minutes & seconds. Modern glass UI with animated background." />
+
+  <style>
+    /* ===== Variables ===== */
+    :root{
+      --bg-1: #1b0033; /* deep purple */
+      --bg-2: #4b007b; /* purple */
+      --bg-3: #a64dff; /* pink-ish */
+      --glow-a: rgba(166,77,255,0.22);
+      --card-bg: rgba(255,255,255,0.06);
+      --accent-1: #7afcff;
+      --accent-2: #b37bff;
+      --text: #f3eefc;
+    }
+
+    /* ===== Reset / Base ===== */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{<body>
+    <h1>Age Calculator - Find Your Age Instantly</h1>
+    <h2>How to Use</h2>
+    <p>Enter your date of birth and click calculate to find your age.</p>
+</body>
+
+      margin:0;
+      font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 10% 20%, rgba(166,77,255,0.08), transparent 8%),
+                  radial-gradient(1200px 600px at 90% 80%, rgba(122,252,255,0.04), transparent 8%),
+                  linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+      overflow-x:hidden;
+      position:relative;
+    }
+
+    /* ===== Header / Nav ===== */
+    header{
+      position:fixed;
+      top:18px;
+      left:0;
+      right:0;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding:0 28px;
+      z-index:40;
+      pointer-events:none;
+    }
+    nav{
+      pointer-events:auto;
+      display:flex;
+      gap:22px;
+      align-items:center;
+    }
+    nav a{
+      color:var(--text);
+      text-decoration:none;
+      font-weight:600;
+      padding:8px 10px;
+      border-radius:8px;
+      position:relative;
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    nav a::after{
+      content:"";
+      position:absolute;
+      left:8px; right:8px; bottom:4px;
+      height:3px; border-radius:3px;
+      background:linear-gradient(90deg,var(--accent-1), var(--accent-2));
+      opacity:0; transform:scaleX(.2);
+      transition:transform .28s cubic-bezier(.2,.9,.2,1), opacity .18s;
+    }
+    nav a:hover{
+      transform:translateY(-4px);
+      box-shadow: 0 10px 30px rgba(115,50,170,0.16);
+    }
+    nav a:hover::after{ opacity:1; transform:scaleX(1); }
+
+    /* ===== Floating triangle layer (dense) ===== */
+    .bg-layer{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    .triangle{
+      position:absolute;
+      width:0; height:0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 10px solid rgba(255,255,255,0.06);
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+      will-change: transform, opacity;
+    }
+
+    /* floatUp + drift */
+    @keyframes floatUp {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); opacity:0; }
+      8% { opacity:0.9; }
+      100% { transform: translate3d(var(--driftX,0vw), -140vh, 0) rotate(360deg) scale(.9); opacity:0; }
+    }
+
+    /* ===== Page sections & layout ===== */
+    main{position:relative; z-index:6}
+    .section{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:110px 20px 80px;
+      gap:30px;
+      flex-direction:column;
+      text-align:center;
+    }
+
+    .card{
+      width:100%;
+      max-width:520px;
+      background: var(--card-bg);
+      border-radius:18px;
+      padding:28px;
+      backdrop-filter: blur(14px) saturate(120%);
+      -webkit-backdrop-filter: blur(14px) saturate(120%);
+      border:1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(30,6,60,0.45);
+      transition: transform .28s ease, box-shadow .28s ease;
+    }
+    .card:hover{ transform:translateY(-6px); box-shadow: 0 20px 60px rgba(30,6,60,0.55); }
+
+    h1.hero{ font-size:1.6rem; margin-bottom:6px; color:#f7f4ff; text-shadow:0 6px 20px rgba(120,45,180,0.12) }
+    p.lead{ color:rgba(255,255,255,0.9); margin-bottom:18px; font-size:0.98rem }
+
+    input[type="date"]{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px; border:none; outline:none;
+      background: rgba(255,255,255,0.04); color:var(--text); font-size:1rem;
+      box-shadow: inset 0 2px 12px rgba(0,0,0,0.35);
+    }
+
+    /* ===== Gradient glowing button ===== */
+    .btn {
+      margin-top:14px;
+      padding:12px 22px;
+      border-radius:12px;
+      border:none;
+      cursor:pointer;
+      color:#0b0520;
+      font-weight:800;
+      background: linear-gradient(90deg,#7afcff,#b37bff);
+      box-shadow: 0 10px 30px rgba(123,101,255,0.14), 0 2px 8px rgba(0,0,0,0.28);
+      transition: transform .16s cubic-bezier(.2,.9,.2,1), box-shadow .16s;
+      position:relative; overflow:hidden;
+    }
+    .btn:before{
+      content:"";
+      position:absolute; inset:0; border-radius:12px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+    .btn:hover{
+      transform: translateY(-6px) scale(1.04);
+      box-shadow: 0 22px 60px rgba(123,101,255,0.26);
+    }
+
+    /* animated gradient pulse on btn via pseudo */
+    @keyframes btnGlow {
+      0%{ filter: drop-shadow(0 0 8px rgba(122,252,255,0.08)); }
+      50%{ filter: drop-shadow(0 0 20px rgba(179,123,255,0.12)); transform:translateY(-6px) scale(1.02); }
+      100%{ filter: drop-shadow(0 0 8px rgba(122,252,255,0.08)); }
+    }
+    .btn.pulse { animation: btnGlow 3s ease-in-out infinite; }
+
+    /* ===== Result box ===== */
+    #result{
+      margin-top:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:10px;
+      padding:12px;
+      font-weight:700;
+      color:#efeaff;
+      min-height:54px;
+    }
+    .small{ font-weight:600; font-size:0.95rem; color:rgba(235,225,255,0.9) }
+
+    /* ===== Section reveal animations ===== */
+    .reveal{ opacity:0; transform: translateY(18px) scale(.995); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.9,.2,1); will-change:opacity, transform; }
+    .reveal.visible{ opacity:1; transform: translateY(0) scale(1); }
+
+    /* ===== Contact COMING SOON styling ===== */
+    .coming-soon{
+      font-size:2.2rem;
+      font-weight:900;
+      letter-spacing:1px;
+      color: #fff;
+      text-shadow: 0 12px 40px rgba(179,123,255,0.18), 0 0 30px rgba(122,252,255,0.06);
+    }
+
+    /* ===== Footer ===== */
+    footer{
+      position:fixed; left:0; right:0; bottom:10px;
+      z-index:20; text-align:center; color:rgba(255,255,255,0.6); font-size:0.9rem;
+    }
+
+    /* ===== Responsive tweaks ===== */
+    @media (max-width:900px){
+      header{ padding:0 14px }
+      .card{ padding:20px; max-width:420px; }
+    }
+    @media (max-width:520px){
+      .btn{ width:100% }
+      nav a{ font-size:14px; margin-left:12px; }
+    }
+
+    /* Respect users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .triangle{ animation:none !important; opacity:.6 !important; }
+      .card, .btn{ transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <header aria-hidden="false">
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Background triangles layer -->
+  <div class="bg-layer" id="bgLayer" aria-hidden="true"></div>
+
+  <main>
+    <!-- HOME -->
+    <section id="home" class="section">
+      <div class="card reveal" id="homeCard">
+        <h1 class="hero">🎂 Smart Age Calculator</h1>
+        <p class="lead">Find your exact age — years, months, days, hours, minutes & seconds. Instant & browser-only.</p>
+
+        <input id="dob" type="date" aria-label="Date of birth" />
+        <button id="calcBtn" class="btn pulse" aria-label="Calculate age">Calculate</button>
+
+        <div id="result" aria-live="polite"><div class="small">Result will appear here</div></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section">
+      <div class="card reveal" id="aboutCard">
+        <h2 style="margin-bottom:10px">About</h2>
+        <p class="small" style="max-width:720px; margin:0 auto;">
+          This tool calculates age entirely in your browser — nothing is sent to any server.
+          The site uses minimal cookies for analytics and ad personalization if enabled.
+          Designed for speed, privacy and a premium UI experience.
+        </p>
+      </div>
+    </section>
+
+    <!-- PRIVACY -->
+    <section id="privacy" class="section">
+      <div class="card reveal" id="privacyCard">
+        <h2 style="margin-bottom:10px">Privacy Policy</h2>
+        <p class="small" style="max-width:720px; margin:0 auto; text-align:left;">
+          <strong>Data & calculations:</strong> All age calculations are performed locally in your browser. No personal data is stored by default.<br><br>
+          <strong>Cookies & analytics:</strong> We may use cookies and analytics tools (e.g., Google Analytics) to measure traffic and improve UX. These are minimal and do not transmit your birthdate or personal data.<br><br>
+          <strong>Ads:</strong> The site may show ads via Google AdSense. Google and ad partners may use cookies to deliver personalized ads. You can manage ad personalization in Google Ads Settings.<br><br>
+          By using this site you agree to these practices. If you later provide an email/contact, it will only be used to respond to you.
+        </p>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section">
+      <div class="card reveal" id="contactCard">
+        <h2 style="margin-bottom:10px">Contact</h2>
+        <div class="coming-soon">COMING SOON</div>
+        <p class="small" style="margin-top:12px">Contact form & support will be available soon.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2025 Age Tools — All rights reserved</footer>
+
+  <script>
+    /* =========================
+       Generate many triangles (dense) with random properties
+       ========================= */
+    (function createTriangles(){
+      const NUM = 240; // reduce if performance issues
+      const layer = document.getElementById('bgLayer');
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      function rand(min,max){ return Math.random()*(max-min)+min; }
+
+      for(let i=0;i<NUM;i++){
+        const t = document.createElement('div');
+        t.className = 'triangle';
+        // scale sizes randomly:
+        const scale = rand(0.6,2.4);
+        const borderBase = Math.round(6 * scale);
+        const side = Math.round(4 * scale);
+        t.style.borderBottomWidth = borderBase + 'px';
+        t.style.borderLeftWidth = side + 'px';
+        t.style.borderRightWidth = side + 'px';
+        // position spawn (bottomish)
+        t.style.left = rand(-8, 108) + 'vw';
+        t.style.top = rand(10, vh + 120) + 'px';
+        // color tint subtle purple/pink/blue mix
+        const alpha = rand(0.03, 0.18);
+        const r = Math.floor(rand(140,255));
+        const g = Math.floor(rand(140,255));
+        const b = Math.floor(rand(200,255));
+        // keep it subtle and mostly white-ish tinted
+        t.style.borderBottomColor = `rgba(255,255,255,${alpha})`;
+        t.style.opacity = rand(0.18, 0.85);
+        // rotation & scale
+        t.style.transform = `rotate(${rand(0,360)}deg) scale(${rand(0.6,1.6)})`;
+        // animation duration and horizontal drift:
+        const dur = rand(9, 28); // seconds
+        const driftX = rand(-10, 10).toFixed(2) + 'vw';
+        t.style.setProperty('--driftX', driftX);
+        const delay = rand(-12, 8).toFixed(2) + 's';
+        t.style.animation = `floatUp ${dur}s linear ${delay} infinite`;
+        layer.appendChild(t);
+      }
+
+      // cleanup on resize if needed (not aggressive)
+      window.addEventListener('resize', ()=> {
+        // keep existing triangles — for perf we don't rebuild often
+      });
+    })();
+
+
+    /* =========================
+       IntersectionObserver for reveal animations
+       ========================= */
+    (function setupReveals(){
+      const opts = { root: null, rootMargin: "0px", threshold: 0.12 };
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(ent=>{
+          if(ent.isIntersecting) ent.target.classList.add('visible');
+        });
+      }, opts);
+
+      document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+    })();
+
+
+    /* =========================
+       Calendar-accurate age calculation + live ticking
+       ========================= */
+    (function ageCalculator(){
+      const input = document.getElementById('dob');
+      const btn = document.getElementById('calcBtn');
+      const out = document.getElementById('result');
+      let tick = null;
+
+      function computeAndShow(){
+        const val = input.value;
+        if(!val){ out.innerHTML = '<div class="small">Please select your date of birth</div>'; return; }
+        const dob = new Date(val);
+        const now = new Date();
+        if(dob > now){ out.innerHTML = '<div class="small">Date is in future — choose a valid date</div>'; return; }
+
+        // years
+        let years = now.getFullYear() - dob.getFullYear();
+        let anniversary = new Date(dob);
+        anniversary.setFullYear(dob.getFullYear() + years);
+        if(anniversary > now){
+          years--;
+          anniversary = new Date(dob);
+          anniversary.setFullYear(dob.getFullYear() + years);
+        }
+
+        // months
+        let months = (now.getFullYear() - anniversary.getFullYear()) * 12 + (now.getMonth() - anniversary.getMonth());
+        if(months < 0) months = 0;
+        anniversary.setMonth(anniversary.getMonth() + months);
+        if(anniversary > now){
+          months--;
+          anniversary.setMonth(anniversary.getMonth() - 1);
+        }
+
+        // days/hours/minutes/seconds via differences
+        const ms = now - anniversary;
+        const days = Math.floor(ms / (24*60*60*1000));
+        anniversary.setDate(anniversary.getDate() + days);
+        const hours = Math.floor((now - anniversary) / (60*60*1000));
+        anniversary.setHours(anniversary.getHours() + hours);
+        const minutes = Math.floor((now - anniversary) / (60*1000));
+        anniversary.setMinutes(anniversary.getMinutes() + minutes);
+        const seconds = Math.floor((now - anniversary) / 1000);
+
+        // normalize
+        const yearsStr = `${years} years`;
+        const monthsStr = `${months} months`;
+        const daysStr = `${days} days`;
+        const hoursStr = `${hours} hours`;
+        const minsStr = `${minutes} minutes`;
+        const secsStr = `${seconds} seconds`;
+
+        out.innerHTML = `<div class="line">${yearsStr} • ${monthsStr} • ${daysStr}</div>
+                         <div class="small">${hoursStr} • ${minsStr} • ${secsStr}</div>`;
+      }
+
+      function startTicking(){
+        if(tick) clearInterval(tick);
+        computeAndShow();
+        tick = setInterval(computeAndShow, 1000);
+      }
+
+      btn.addEventListener('click', startTicking);
+      // also allow Enter key on input
+      input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ startTicking(); } });
+
+      // clear tick when date cleared or changed
+      input.addEventListener('change', ()=> {
+        if(!input.value){ if(tick) clearInterval(tick); out.innerHTML = '<div class="small">Result will appear here</div>'; }
+      });
+    })();
+
+
+    /* =========================
+       Tiny UX: highlight nav link on scroll (optional)
+       ========================= */
+    (function navActive(){
+      const sections = document.querySelectorAll('main section');
+      const links = document.querySelectorAll('nav a');
+
+      const map = {};
+      links.forEach(l => { const id = l.getAttribute('href').slice(1); map[id] = l; });
+
+      const obs = new IntersectionObserver(entries=>{
+        entries.forEach(ent=>{
+          if(ent.isIntersecting){
+            const id = ent.target.id;
+            Object.values(map).forEach(a=> a.style.opacity = '0.65' );
+            if(map[id]) map[id].style.opacity = '1';
+          }
+        });
+      }, {threshold:0.45});
+
+      sections.forEach(s=> obs.observe(s));
+    })();
+
+  </script>
+</body>
+</html>
