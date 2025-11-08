@@ -1,9 +1,15 @@
 {
-  "name": "Smart Age Calculator",
+  "name": "Age Calculator Online",
   "short_name": "AgeCalc",
-  "start_url": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 128x128 256x256",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#3c0078",
-  "theme_color": "#b85cff",
-  "description": "Instant age calculator for years, months, days, hours, minutes & seconds."
+  "theme_color": "#8b5cf6",
+  "background_color": "#ffffff"
 }
